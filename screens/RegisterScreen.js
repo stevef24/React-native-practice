@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { MaterialIcons } from "@expo/vector-icons";
 import {
 	Alert,
 	SafeAreaView,
@@ -10,13 +11,31 @@ import {
 import { auth } from "../firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { Formik } from "formik";
+import * as yup from "yup";
 
 export default function RegisterScreen({ setIsSignedIn }) {
+	const [formData, setFormData] = useState({
+		email: "",
+		password: "",
+		confirmPassword: "",
+		firstName: "",
+		lastName: "",
+	});
+	console.log(formData);
+
+	const reviewSchema = yup.object({
+		email: yup.string().email("Please provide a valid email").required(),
+		password: yup.string().required("Password is required"),
+		confirmPassword: yup
+			.string()
+			.oneOf([yup.ref("password"), null], "Passwords must match")
+			.required("Password is required"),
+		firstName: yup.string().required("First name cannot be empty").max(20),
+		lastName: yup.string().required("Last name cannot be empty").min(4).max(20),
+	});
 	const register = () => {
-		createUserWithEmailAndPassword(auth, email, password)
-			.then((user) => {
-				setIsSignedIn(true);
-			})
+		createUserWithEmailAndPassword(auth, formData.email, formData.password)
+			.then((user) => {})
 			.catch((err) => {
 				console.error(err);
 				Alert.alert("Wrong Input", "Email or password are incorrect", [
@@ -39,9 +58,19 @@ export default function RegisterScreen({ setIsSignedIn }) {
 					firstName: "",
 					lastName: "",
 				}}
-				onSubmit={(values) => {
-					console.log(values);
+				onSubmit={(
+					{ email, password, confirmPassword, firstName, lastName },
+					actions
+				) => {
+					setFormData({
+						email,
+						password,
+						confirmPassword,
+						firstName,
+						lastName,
+					});
 				}}
+				validationSchema={reviewSchema}
 			>
 				{(props) => (
 					<View className="w-3/4 flex gap-y-2">
@@ -55,6 +84,12 @@ export default function RegisterScreen({ setIsSignedIn }) {
 								required
 							/>
 						</View>
+						{props.errors.firstName && props.touched.firstName && (
+							<View className="flex flex-row justify-between ">
+								<Text className="text-red-500">{props.errors.firstName}</Text>
+								<MaterialIcons name="error-outline" size={20} color="red" />
+							</View>
+						)}
 						<View>
 							<Text>Last Name</Text>
 							<TextInput
@@ -63,15 +98,27 @@ export default function RegisterScreen({ setIsSignedIn }) {
 								value={props.values.lastName}
 								onChangeText={props.handleChange("lastName")}
 							/>
+							{props.errors.lastName && props.touched.lastName && (
+								<View className="flex flex-row justify-between ">
+									<Text className="text-red-500">{props.errors.lastName}</Text>
+									<MaterialIcons name="error-outline" size={20} color="red" />
+								</View>
+							)}
 						</View>
 						<View>
-							<Text>Email ID</Text>
+							<Text>Email</Text>
 							<TextInput
 								className="py-4 px-2 border border-stone-200 rounded-xl focus:border-purple-900 mt-2"
 								placeholder="Email"
 								value={props.values.email}
 								onChangeText={props.handleChange("email")}
 							/>
+							{props.errors.email && props.touched.email && (
+								<View className="flex flex-row justify-between ">
+									<Text className="text-red-500">{props.errors.email}</Text>
+									<MaterialIcons name="error-outline" size={20} color="red" />
+								</View>
+							)}
 						</View>
 						<View>
 							<Text>Password</Text>
@@ -82,6 +129,12 @@ export default function RegisterScreen({ setIsSignedIn }) {
 								secureTextEntry
 								onChangeText={props.handleChange("password")}
 							/>
+							{props.errors.password && props.touched.password && (
+								<View className="flex flex-row justify-between ">
+									<Text className="text-red-500">{props.errors.password}</Text>
+									<MaterialIcons name="error-outline" size={20} color="red" />
+								</View>
+							)}
 						</View>
 						<View>
 							<Text>Confirm Password</Text>
@@ -92,6 +145,15 @@ export default function RegisterScreen({ setIsSignedIn }) {
 								secureTextEntry
 								onChangeText={props.handleChange("confirmPassword")}
 							/>
+							{props.errors.confirmPassword &&
+								props.touched.confirmPassword && (
+									<View className="flex flex-row justify-between ">
+										<Text className="text-red-500">
+											{props.errors.confirmPassword}
+										</Text>
+										<MaterialIcons name="error-outline" size={20} color="red" />
+									</View>
+								)}
 						</View>
 						<View>
 							<TouchableOpacity

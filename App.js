@@ -1,22 +1,13 @@
 import { SafeAreaView, Text } from "react-native";
-import Login from "./screens/Login";
-import Home from "./screens/Home";
 import React, { useState } from "react";
-import { NativeBaseProvider } from "native-base";
-import RegisterScreen from "./screens/RegisterScreen";
+import Home from "./screens/Home";
+import Navigator from "./routes/loginStack";
 
 export default function App() {
-	const [isSignedIn, setIsSignedIn] = useState(true);
-
+	const [isSignedIn, setIsSignedIn] = useState(false);
 	return (
-		<NativeBaseProvider>
-			<SafeAreaView className=" flex h-full w-full">
-				{isSignedIn ? (
-					<RegisterScreen />
-				) : (
-					<Login setIsSignedIn={setIsSignedIn} />
-				)}
-			</SafeAreaView>
-		</NativeBaseProvider>
+		<SafeAreaView className="flex w-full h-full ">
+			{isSignedIn ? <Home /> : <Navigator />}
+		</SafeAreaView>
 	);
 }

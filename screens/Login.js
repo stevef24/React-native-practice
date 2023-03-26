@@ -9,16 +9,19 @@ import {
 } from "react-native";
 import { auth } from "../firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { useContext } from "react";
+import { UserContext } from "../components/UserContext";
 
-export default function Login({ setIsSignedIn }) {
+export default function Login({ navigation }) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	// const { setIsSignedIn } = useContext(UserContext);
 
 	const signIn = () => {
 		console.log(email, password);
 		signInWithEmailAndPassword(auth, email, password)
 			.then((user) => {
-				setIsSignedIn(true);
+				// setIsSignedIn(true);
 			})
 			.catch((err) => {
 				console.error(err);
@@ -29,18 +32,18 @@ export default function Login({ setIsSignedIn }) {
 	};
 
 	return (
-		<SafeAreaView className="flex h-full justify-center items-center ">
+		<SafeAreaView className="flex items-center justify-center h-full ">
 			<View className="w-3/4 mb-4 gap-y-4">
 				<Text className="text-3xl">
 					Welcome to
-					<Text className="text-purple-500 font-bold"> City Canvas</Text>
+					<Text className="font-bold text-purple-500"> City Canvas</Text>
 				</Text>
 				<Text className="text-lg text-stone-500">Sign in to continue</Text>
 			</View>
 			<View className="flex w-3/4 gap-2 mt-2">
 				<Text>Email ID</Text>
 				<TextInput
-					className="py-4 px-2 border border-stone-200 rounded-xl focus:border-purple-900"
+					className="px-2 py-4 border border-stone-200 rounded-xl focus:border-purple-900"
 					placeholder="Email"
 					value={email}
 					onChangeText={(input) => setEmail(input)}
@@ -48,7 +51,7 @@ export default function Login({ setIsSignedIn }) {
 				<Text>Password</Text>
 
 				<TextInput
-					className="py-4 px-2 border border-stone-200 rounded-xl focus:border-purple-900"
+					className="px-2 py-4 border border-stone-200 rounded-xl focus:border-purple-900"
 					placeholder="Password"
 					value={password}
 					secureTextEntry
@@ -56,10 +59,19 @@ export default function Login({ setIsSignedIn }) {
 				/>
 			</View>
 			<TouchableOpacity
-				className="my-2 p-4 border flex justify-center items-center rounded-lg bg-purple-900 w-3/4 mt-4"
+				className="flex items-center justify-center w-3/4 p-4 my-2 mt-4 bg-purple-900 border rounded-lg"
 				onPress={signIn}
 			>
 				<Text className="text-xl text-white">Sign in</Text>
+			</TouchableOpacity>
+			<TouchableOpacity
+				className="flex gap-y-2"
+				onPress={() => navigation.push("Register")}
+			>
+				<Text>Dont have an account yet?</Text>
+				<Text className="ml-2 font-bold text-center text-purple-900">
+					Register here!
+				</Text>
 			</TouchableOpacity>
 		</SafeAreaView>
 	);

@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
+import { collection, getDocs, setDoc, doc } from "firebase/firestore/lite";
+import { db } from "../firebaseConfig";
+import uuid from "react-native-uuid";
 import {
 	Alert,
 	SafeAreaView,
@@ -13,16 +16,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { Formik } from "formik";
 import * as yup from "yup";
 
-export default function RegisterScreen({ setIsSignedIn }) {
-	const [formData, setFormData] = useState({
-		email: "",
-		password: "",
-		confirmPassword: "",
-		firstName: "",
-		lastName: "",
-	});
-	console.log(formData);
-
+export default function RegisterScreen({ setIsSignedIn, navigation }) {
 	const reviewSchema = yup.object({
 		email: yup.string().email("Please provide a valid email").required(),
 		password: yup.string().required("Password is required"),
@@ -33,21 +27,42 @@ export default function RegisterScreen({ setIsSignedIn }) {
 		firstName: yup.string().required("First name cannot be empty").max(20),
 		lastName: yup.string().required("Last name cannot be empty").min(4).max(20),
 	});
-	const register = () => {
-		createUserWithEmailAndPassword(auth, formData.email, formData.password)
-			.then((user) => {})
+
+	const register = (email, password) => {
+		return createUserWithEmailAndPassword(auth, email, password)
+			.then((user) => {
+				console.log("user created");
+			})
 			.catch((err) => {
-				console.error(err);
 				Alert.alert("Wrong Input", "Email or password are incorrect", [
 					{ text: "Try again", onPress: () => {} },
 				]);
 			});
 	};
 
+	const setData = (firstName, lastName, email) => {
+		const data = {
+			firstName,
+			lastName,
+			email,
+		};
+		return setDoc(doc(db, "users", uuid.v4()), data);
+	};
+
+	// const getData = () => {
+	// 	const userCollection = collection(db, "users");
+	// 	return getDocs(userCollection).then((userSnapShot) => {
+	// 		const userList = userSnapShot.docs.map((doc) => doc.data());
+	// 		console.log(userList);
+	// 	});
+	// };
+
+	// getData();
+
 	return (
-		<SafeAreaView className="flex h-full justify-center items-center ">
+		<SafeAreaView className="flex items-center justify-center h-full ">
 			<View className="w-3/4 mb-4 gap-y-4">
-				<Text className="text-3xl text-purple-500 font-bold">Register</Text>
+				<Text className="text-3xl font-bold text-purple-500">Register</Text>
 				<Text className="text-lg text-stone-500">Sign up to continue</Text>
 			</View>
 			<Formik
@@ -58,26 +73,26 @@ export default function RegisterScreen({ setIsSignedIn }) {
 					firstName: "",
 					lastName: "",
 				}}
-				onSubmit={(
-					{ email, password, confirmPassword, firstName, lastName },
-					actions
-				) => {
-					setFormData({
-						email,
-						password,
-						confirmPassword,
-						firstName,
-						lastName,
+				onSubmit={({
+					email,
+					password,
+					confirmPassword,
+					firstName,
+					lastName,
+				}) => {
+					setData(firstName, lastName, email);
+					register(email, password).then(() => {
+						navigation.goBack();
 					});
 				}}
 				validationSchema={reviewSchema}
 			>
 				{(props) => (
-					<View className="w-3/4 flex gap-y-2">
+					<View className="flex w-3/4 gap-y-2">
 						<View>
 							<Text>First Name</Text>
 							<TextInput
-								className="py-4 px-2 border border-stone-200 rounded-xl focus:border-purple-900 mt-2"
+								className="px-2 py-4 mt-2 border border-stone-200 rounded-xl focus:border-purple-900"
 								placeholder="e.g greatest"
 								value={props.values.firstName}
 								onChangeText={props.handleChange("firstName")}
@@ -93,7 +108,7 @@ export default function RegisterScreen({ setIsSignedIn }) {
 						<View>
 							<Text>Last Name</Text>
 							<TextInput
-								className="py-4 px-2 border border-stone-200 rounded-xl focus:border-purple-900 mt-2"
+								className="px-2 py-4 mt-2 border border-stone-200 rounded-xl focus:border-purple-900"
 								placeholder="e.g ever"
 								value={props.values.lastName}
 								onChangeText={props.handleChange("lastName")}
@@ -108,7 +123,7 @@ export default function RegisterScreen({ setIsSignedIn }) {
 						<View>
 							<Text>Email</Text>
 							<TextInput
-								className="py-4 px-2 border border-stone-200 rounded-xl focus:border-purple-900 mt-2"
+								className="px-2 py-4 mt-2 border border-stone-200 rounded-xl focus:border-purple-900"
 								placeholder="Email"
 								value={props.values.email}
 								onChangeText={props.handleChange("email")}
@@ -123,7 +138,7 @@ export default function RegisterScreen({ setIsSignedIn }) {
 						<View>
 							<Text>Password</Text>
 							<TextInput
-								className="py-4 px-2 border border-stone-200 rounded-xl focus:border-purple-900 mt-2"
+								className="px-2 py-4 mt-2 border border-stone-200 rounded-xl focus:border-purple-900"
 								placeholder="Password"
 								value={props.values.password}
 								secureTextEntry
@@ -139,7 +154,7 @@ export default function RegisterScreen({ setIsSignedIn }) {
 						<View>
 							<Text>Confirm Password</Text>
 							<TextInput
-								className="py-4 px-2 border border-stone-200 rounded-xl focus:border-purple-900 mt-2"
+								className="px-2 py-4 mt-2 border border-stone-200 rounded-xl focus:border-purple-900"
 								placeholder="Password"
 								value={props.values.confirmPassword}
 								secureTextEntry
@@ -157,7 +172,7 @@ export default function RegisterScreen({ setIsSignedIn }) {
 						</View>
 						<View>
 							<TouchableOpacity
-								className="my-2 p-4 border flex justify-center items-center rounded-lg bg-purple-900 mt-2 "
+								className="flex items-center justify-center p-4 my-2 mt-2 bg-purple-900 border rounded-lg "
 								onPress={props.handleSubmit}
 							>
 								<Text className="text-xl text-white">Sign up!</Text>
